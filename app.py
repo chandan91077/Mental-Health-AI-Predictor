@@ -19,7 +19,7 @@ PAGES = ["🔮 Quick Predict", "📁 Load Data", "🤖 Train Model", "🎯 Make 
 
 # Page configuration
 st.set_page_config(
-    page_title="Mental Health AI Predictor",
+    page_title="🧠 Mental Health AI Predictor",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -594,22 +594,41 @@ def render_hero():
     </div>
     """, unsafe_allow_html=True)
 
-# Navigation
+# Replace the render_navigation() function with this fixed version
+
 def render_navigation():
+    """Render navigation with proper state handling for Streamlit Cloud"""
     st.markdown('<div class="nav-pills">', unsafe_allow_html=True)
     cols = st.columns(len(PAGES))
+    
     for idx, (col, page) in enumerate(zip(cols, PAGES)):
         with col:
             is_active = st.session_state.current_page == page
-            button_style = """
-                background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
-                color: white !important;
-                border: none !important;
-            """ if is_active else ""
             
-            if st.button(page, key=f"nav_{idx}", use_container_width=True):
-                st.session_state.current_page = page
-                st.rerun()
+            # Use unique key with form to ensure proper state handling
+            button_key = f"nav_button_{idx}_{page.replace(' ', '_')}"
+            
+            if is_active:
+                # Show active button with different styling
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
+                            color: white; 
+                            padding: 12px 20px; 
+                            border-radius: 12px; 
+                            text-align: center;
+                            font-weight: 600;
+                            font-size: clamp(0.9rem, 1.5vw, 1rem);
+                            cursor: default;">
+                    {page}
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # Clickable button for inactive pages
+                if st.button(page, key=button_key, use_container_width=True):
+                    st.session_state.current_page = page
+                    # Force a clean rerun
+                    st.rerun()
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Rule-based AI prediction system - FIXED VERSION
@@ -1593,22 +1612,38 @@ def page_visualizations():
             if 'y_test' in metrics and 'y_pred' in metrics:
                 fig = plot_prediction_comparison(metrics['y_test'], metrics['y_pred'], st.session_state.trainer.target_encoder)
                 st.pyplot(fig)
-# Main App
+# Replace the main() function at the bottom of app.py
+
 def main():
+    """Main application function with proper initialization"""
+    # Initialize session state FIRST
     init_session_state()
+    
+    # Render UI
     render_hero()
     render_navigation()
     
-    if st.session_state.current_page == PAGES[0]:  # Quick Predict
+    # Add a small separator
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Route to correct page based on session state
+    current_page = st.session_state.current_page
+    
+    if current_page == PAGES[0]:  # Quick Predict
         page_quick_predict()
-    elif st.session_state.current_page == PAGES[1]:  # Load Data
+    elif current_page == PAGES[1]:  # Load Data
         page_load_data()
-    elif st.session_state.current_page == PAGES[2]:  # Train Model
+    elif current_page == PAGES[2]:  # Train Model
         page_train_model()
-    elif st.session_state.current_page == PAGES[3]:  # Make Predictions
+    elif current_page == PAGES[3]:  # Make Predictions
         page_make_predictions()
-    elif st.session_state.current_page == PAGES[4]:  # Visualizations
+    elif current_page == PAGES[4]:  # Visualizations
         page_visualizations()
+    else:
+        # Fallback to first page if something goes wrong
+        st.session_state.current_page = PAGES[0]
+        st.rerun()
+
 
 if __name__ == "__main__":
     main()
