@@ -594,21 +594,39 @@ def render_hero():
     </div>
     """, unsafe_allow_html=True)
 
-# Navigation
+# ---------- URL-aware navigation ----------
+from streamlit import query_params
+
+# (place this once, right after init_session_state)
+if "page" in query_params:
+    qp = query_params["page"]
+    for p in PAGES:
+        if p.lower().replace(" ", "_") == qp:
+            st.session_state.current_page = p
+            break
+else:
+    query_params["page"] = st.session_state.current_page.lower().replace(" ", "_")
+
+
+# ---------- Navigation ----------
 def render_navigation():
     st.markdown('<div class="nav-pills">', unsafe_allow_html=True)
     cols = st.columns(len(PAGES))
     for idx, (col, page) in enumerate(zip(cols, PAGES)):
         with col:
             is_active = st.session_state.current_page == page
-            button_style = """
-                background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
-                color: white !important;
-                border: none !important;
-            """ if is_active else ""
-            
-            if st.button(page, key=f"nav_{idx}", use_container_width=True):
+            active_cls = "active-pill" if is_active else ""
+
+            # we use a *form* so the button click → URL update → rerun
+            with st.form(key=f"form_nav_{idx}"):
+                pressed = st.form_submit_button(
+                    page,
+                    use_container_width=True,
+                    help=page
+                )
+            if pressed:
                 st.session_state.current_page = page
+                query_params["page"] = page.lower().replace(" ", "_")
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
