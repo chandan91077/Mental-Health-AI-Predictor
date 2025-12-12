@@ -19,7 +19,7 @@ PAGES = ["🔮 Quick Predict", "📁 Load Data", "🤖 Train Model", "🎯 Make 
 
 # Page configuration
 st.set_page_config(
-    page_title="🧠 Mental Health AI Predictor",
+    page_title="Mental Health AI Predictor",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="collapsed"
